@@ -3,6 +3,7 @@ import streamlit as st
 from ultralytics import YOLO
 from datetime import datetime, timedelta
 import pandas as pd
+import os
 
 def app():
     st.header('SafeFall: Fall Detection Web App')
@@ -14,7 +15,9 @@ def app():
     model = YOLO(custom_model_path)
     object_names = list(model.names.values())
 
-    min_confidence = st.slider('Confidence Score', 0.0, 1.0, value=0.5)
+    min_confidence = st.slider('Confidence Score', 0.0, 1.0, value=0.75)
+    
+    st.write('Select the minimum confidence score the model must have for its predictions. The default minimum confidence score is set to 0.75. Lower confidence score (near 0) means the model can be more uncertain about its predictions. While, a higher confidence score (near 1) means the model is more certain about its prediction.')
 
     # Button to start webcam
     start_button = st.button('Start Webcam')
@@ -59,13 +62,20 @@ def app():
                     if object_name == 'Fall Detected':
                         current_time = datetime.now()
                         if current_time - st.session_state.last_fall_time > timedelta(seconds=10):
-                            fall_date = current_time.strftime('%d/%m/%Y')
-                            fall_time = current_time.strftime('%H:%M:%S')
+                            fall_date = current_time.strftime('%Y-%m-%d')
+                            fall_time = current_time.strftime('%H-%M-%S')
+                            
+                            frame_filename = f'fall_frame_{fall_date}_{fall_time}_{score:.2f}.png'
+                            frame_path = os.path.join('fall_frames', frame_filename)
+                            os.makedirs('fall_frames', exist_ok=True)
+                            cv2.imwrite(frame_path, frame)
+                            
                             st.session_state.fall_history.append({
                                 'No': len(st.session_state.fall_history) + 1,
                                 'Date': fall_date,
-                                'Time (WIB)': fall_time,
-                                'Confidence Score': f'{score:.2f}'
+                                'Time (WIB)': fall_time.replace(':', '-'),
+                                'Confidence Score': f'{score:.2f}',
+                                'Image': frame_path
                             })
                             st.session_state.last_fall_time = current_time
 
@@ -82,7 +92,16 @@ def app():
     if st.session_state.fall_history:
         df_fall_history = pd.DataFrame(st.session_state.fall_history)
         df_fall_history.set_index('No', inplace=True)
-        st.table(df_fall_history)
+        # st.table(df_fall_history)
+        
+        # Display the table with images
+        for index, row in df_fall_history.iterrows():
+            st.write(f"**No:** {index}")
+            st.write(f"**Date:** {row['Date']}")
+            st.write(f"**Time (WIB):** {row['Time (WIB)']}")
+            st.write(f"**Confidence Score:** {row['Confidence Score']}")
+            st.image(row['Image'])
+            st.write("---")
     else:
         st.write('No falls detected yet.')
 

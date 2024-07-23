@@ -17,9 +17,9 @@ def app():
     model = YOLO(custom_model_path)
     object_names = list(model.names.values())
 
-    min_confidence = st.slider('Minimum confidence score', 0.0, 1.0, value=0.5)
+    min_confidence = st.slider('Minimum confidence score', 0.0, 1.0, value=0.75)
 
-    st.write('Select the minimum confidence score the model must have for its predictions. The default minimum confidence score is set to 0.5. Lower confidence score (near 0) means the model can be more uncertain about its predictions. While, a higher confidence score (near 1) means the model is more certain about its prediction.')
+    st.write('Select the minimum confidence score the model must have for its predictions. The default minimum confidence score is set to 0.75. Lower confidence score (near 0) means the model can be more uncertain about its predictions. While, a higher confidence score (near 1) means the model is more certain about its prediction.')
     
     # URL Kamera HP
     mobile_stream_url = st.text_input("Mobile Camera Stream URL. (Format: https://xxx.xxx.xxx.xxx:8080/video)")
