@@ -4,6 +4,7 @@ from ultralytics import YOLO
 from datetime import datetime, timedelta
 import pandas as pd
 import os
+import serial
 
 def app():
     st.header('SafeFall: Fall Detection Web App')
@@ -27,6 +28,9 @@ def app():
     # Button to start and stop streaming
     start_button = st.button('Start Streaming')
     stop_button = st.button('Stop Streaming')
+    
+    # TAMBAHAN: Inisialisasi koneksi ESP32
+    ESP32 = serial.Serial('COM3', 9600)
 
     # Initialize fall history in session state if not already
     if 'fall_history' not in st.session_state:
@@ -35,8 +39,8 @@ def app():
     # Initialize last fall detection time in session state if not already
     if 'last_fall_time' not in st.session_state:
         st.session_state.last_fall_time = datetime.min
-
-    if start_button:
+        
+    if start_button and mobile_stream_url:
         # Access video mobile camera via URL
         cap = cv2.VideoCapture(mobile_stream_url)
 
@@ -46,9 +50,13 @@ def app():
         # Start video capture loop
         while cap.isOpened():
             ret, frame = cap.read()
+            
             if not ret:
                 st.write("Failed to capture image")
                 break
+            
+            # Boolean untuk cek jatuh atau tidak
+            isfall = False
 
             result = model(frame)
             for detection in result[0].boxes.data:
@@ -65,7 +73,11 @@ def app():
                     
                     # If a fall is detected, log the date, time, & confidence score (with a 10-second interval)
                     if object_name == 'Fall Detected':
+                        # Update boolean untuk arduino menjadi true
+                        isfall = True
+                        
                         current_time = datetime.now()
+                        
                         if current_time - st.session_state.last_fall_time > timedelta(seconds=10):
                             fall_date = current_time.strftime('%Y-%m-%d')
                             fall_time = current_time.strftime('%H-%M-%S')
@@ -82,8 +94,15 @@ def app():
                                 'Confidence Score': f'{score:.2f}',
                                 'Image': frame_path
                             })
+                            
+                            # Switch case arduino
+                            if isfall:
+                                ESP32.write('1'.encode())
+                            else:
+                                ESP32.write('0'.encode())
+                            
                             st.session_state.last_fall_time = current_time
-
+                                          
             # Display frame in Streamlit
             frame_placeholder.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
@@ -97,7 +116,6 @@ def app():
     if st.session_state.fall_history:
         df_fall_history = pd.DataFrame(st.session_state.fall_history)
         df_fall_history.set_index('No', inplace=True)
-        # st.table(df_fall_history)
         
         # Display the table with images
         for index, row in df_fall_history.iterrows():
@@ -107,11 +125,12 @@ def app():
             st.write(f"**Confidence Score:** {row['Confidence Score']}")
             st.image(row['Image'])
             st.write("---")
-        
+
     else:
         st.write('No falls detected yet.')
 
     # Display Caregiver data
+    
     st.subheader('Caregiver Information')
     caregiver_data = {
         'No': ['1', '2', '3'],
