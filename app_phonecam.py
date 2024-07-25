@@ -6,7 +6,16 @@ import pandas as pd
 import os
 import serial
 import pywhatkit as pwk
+import time
 
+# Initialize the session state for caregiver data if not already done
+if 'caregiver_data' not in st.session_state:
+    st.session_state.caregiver_data = {
+        'No': ['1', '2'],
+        'Name': ['Lebron James', 'Stephen Curry'],
+        'Phone Number': ['+62xxxxxxxxxxx', '+62xxxxxxxxxxx']
+    }
+    
 
 # HALAMAN DETEKSI JATUH CV
 def ai_detection():
@@ -33,7 +42,7 @@ def ai_detection():
     stop_button = st.button('Stop Streaming')
     
     # TAMBAHAN: Inisialisasi koneksi ESP32
-    # ESP32 = serial.Serial('COM3', 9600)
+    ESP32 = serial.Serial('COM3', 9600)
 
     # Initialize fall history in session state if not already
     if 'fall_history' not in st.session_state:
@@ -44,7 +53,7 @@ def ai_detection():
         st.session_state.last_fall_time = datetime.min
         
     if start_button and mobile_stream_url:
-        # Access video mobile camera via URL
+        # Akses video kamera HP dengan URL
         cap = cv2.VideoCapture(mobile_stream_url)
 
         # Placeholder video frame
@@ -76,12 +85,14 @@ def ai_detection():
                     
                     # If a fall is detected, log the date, time, & confidence score (with a 10-second interval)
                     if object_name == 'Fall Detected':
-                        # Update boolean untuk arduino menjadi true
-                        isfall = True
-                        
                         current_time = datetime.now()
                         
                         if current_time - st.session_state.last_fall_time > timedelta(seconds=30):
+                            st.session_state.last_fall_time = current_time
+                            
+                            # Update boolean untuk arduino menjadi true
+                            isfall = True
+                            
                             fall_date = current_time.strftime('%Y-%m-%d')
                             fall_time = current_time.strftime('%H-%M-%S')
                             
@@ -100,19 +111,19 @@ def ai_detection():
                             
                             # Send image and message to alert medics
                             # Refrain from opening a second monitor, else the code may not work
-                            phone_number = "+62081807300657"
                             message = f"Fall detected at {fall_time.replace('-', ':')}, {fall_date.replace('-', '/')}. Please check on patient immediately!"
-                            delay = 12
-                            pwk.sendwhats_image(phone_number, frame_path, message, delay, tab_close=True)
+                            delay = 15
+                            
+                            # Send message to each caregiver
+                            for phone_number in st.session_state.caregiver_data['Phone Number']:
+                                pwk.sendwhats_image(phone_number, frame_path, message, delay, tab_close=True)
                             
                             # Switch case arduino
-                            # if isfall:
-                            #     ESP32.write('1'.encode())
-                            # else:
-                            #     ESP32.write('0'.encode())
-                            
-                            st.session_state.last_fall_time = current_time
-                                          
+                            if isfall:
+                                ESP32.write('1'.encode())
+                            else:
+                                ESP32.write('0'.encode())
+                                           
             # Display frame in Streamlit
             frame_placeholder.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
@@ -124,14 +135,6 @@ def ai_detection():
 
 # HALAMAN CAREGIVER
 def caregiver_info():
-    # Initialize the session state for caregiver data if not already done
-    if 'caregiver_data' not in st.session_state:
-        st.session_state.caregiver_data = {
-            'No': ['1', '2'],
-            'Name': ['Lebron James', 'Stephen Curry'],
-            'Phone Number': ['+6281234567890', '+6281123456789']
-        }
-    
     st.header('Caregiver Information')
     
     # Buat dataframe
