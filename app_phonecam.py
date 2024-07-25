@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import pandas as pd
 import os
 import serial
+import pywhatkit as pwk
+
 
 def app():
     st.header('SafeFall: Fall Detection Web App')
@@ -17,6 +19,17 @@ def app():
     custom_model_path = 'best.pt'
     model = YOLO(custom_model_path)
     object_names = list(model.names.values())
+    
+    # Display Caregiver data
+    st.subheader('Caregiver Information')
+    caregiver_data = {
+        'No': ['1', '2'],
+        'Name': ['Lebron James', 'Stephen Curry'],
+        'Phone Number': ['+62 812-3456-7890', '+62 811-2345-6789']
+    }
+    df_caregivers = pd.DataFrame(caregiver_data)
+    df_caregivers.set_index('No', inplace=True)
+    st.table(df_caregivers)
 
     min_confidence = st.slider('Minimum confidence score', 0.0, 1.0, value=0.75)
 
@@ -30,7 +43,7 @@ def app():
     stop_button = st.button('Stop Streaming')
     
     # TAMBAHAN: Inisialisasi koneksi ESP32
-    ESP32 = serial.Serial('COM3', 9600)
+    # ESP32 = serial.Serial('COM3', 9600)
 
     # Initialize fall history in session state if not already
     if 'fall_history' not in st.session_state:
@@ -68,8 +81,8 @@ def app():
                 label = f'{object_name} {score:.2f}'
 
                 if score > min_confidence:
-                    cv2.rectangle(frame, (x0, y0), (x1, y1), (255, 0, 0), 2)
-                    cv2.putText(frame, label, (x0, y0 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                    cv2.rectangle(frame, (x0, y0), (x1, y1), (42, 235, 255), 2)
+                    cv2.putText(frame, label, (x0, y0 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (42, 235, 255), 2)
                     
                     # If a fall is detected, log the date, time, & confidence score (with a 10-second interval)
                     if object_name == 'Fall Detected':
@@ -78,7 +91,7 @@ def app():
                         
                         current_time = datetime.now()
                         
-                        if current_time - st.session_state.last_fall_time > timedelta(seconds=10):
+                        if current_time - st.session_state.last_fall_time > timedelta(seconds=30):
                             fall_date = current_time.strftime('%Y-%m-%d')
                             fall_time = current_time.strftime('%H-%M-%S')
                             
@@ -95,11 +108,17 @@ def app():
                                 'Image': frame_path
                             })
                             
+                            # Send image and message to alert medics
+                            phone_number = "+62xxxxxxxxxxx"
+                            message = f"Fall detected at {fall_time.replace('-', ':')}, {fall_date.replace('-', '/')}! Please check on patient immediately."
+                            delay = 12
+                            pwk.sendwhats_image(phone_number, frame_path, message, delay, tab_close=True)
+                            
                             # Switch case arduino
-                            if isfall:
-                                ESP32.write('1'.encode())
-                            else:
-                                ESP32.write('0'.encode())
+                            # if isfall:
+                            #     ESP32.write('1'.encode())
+                            # else:
+                            #     ESP32.write('0'.encode())
                             
                             st.session_state.last_fall_time = current_time
                                           
@@ -129,17 +148,7 @@ def app():
     else:
         st.write('No falls detected yet.')
 
-    # Display Caregiver data
     
-    st.subheader('Caregiver Information')
-    caregiver_data = {
-        'No': ['1', '2', '3'],
-        'Name': ['Lebron James', 'Stephen Curry', 'Lionel Messi'],
-        'Phone Number': ['+62 812-3456-7890', '+62 811-2345-6789', '+62 813-4567-8901']
-    }
-    df_caregivers = pd.DataFrame(caregiver_data)
-    df_caregivers.set_index('No', inplace=True)
-    st.table(df_caregivers)
 
 if __name__ == "__main__":
     app()
