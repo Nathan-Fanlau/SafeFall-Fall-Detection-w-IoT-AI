@@ -7,6 +7,8 @@ import os
 import serial
 import pywhatkit as pwk
 
+
+# HALAMAN DETEKSI JATUH CV
 def ai_detection():
     st.header('SafeFall: Fall Detection Web App')
     st.subheader('Made by SIC5 - Kelompok 32')
@@ -120,18 +122,59 @@ def ai_detection():
         cap.release()
 
 
+# HALAMAN CAREGIVER
 def caregiver_info():
+    # Initialize the session state for caregiver data if not already done
+    if 'caregiver_data' not in st.session_state:
+        st.session_state.caregiver_data = {
+            'No': ['1', '2'],
+            'Name': ['Lebron James', 'Stephen Curry'],
+            'Phone Number': ['+6281234567890', '+6281123456789']
+        }
+    
     st.header('Caregiver Information')
-    caregiver_data = {
-        'No': ['1', '2'],
-        'Name': ['Lebron James', 'Stephen Curry'],
-        'Phone Number': ['+62 812-3456-7890', '+62 811-2345-6789']
-    }
-    df_caregivers = pd.DataFrame(caregiver_data)
+    
+    # Buat dataframe
+    df_caregivers = pd.DataFrame(st.session_state.caregiver_data)
     df_caregivers.set_index('No', inplace=True)
+    
+    # Display data caregiver dalam tabel
+    st.write('Current Caregiver Information:')
     st.table(df_caregivers)
+    
+    # Add caregiver baru
+    st.subheader('Add Caregiver')
+    name = st.text_input("Caregiver Name", key="add_name")
+    phone_number = st.text_input("Caregiver Phone Number (Include country code i.e. +62xxxx)", key="add_phone")
+    
+    if st.button('Add Caregiver'):
+        if name and phone_number:
+            new_no = str(len(st.session_state.caregiver_data['No']) + 1)
+            st.session_state.caregiver_data['No'].append(new_no)
+            st.session_state.caregiver_data['Name'].append(name)
+            st.session_state.caregiver_data['Phone Number'].append(phone_number)
+            st.success(f'Caregiver {name} added successfully!')
+            st.rerun()
+        else:
+            st.error('Please provide both name and phone number.')
+
+    # Remove data caregiver berdasarkan nama
+    st.subheader('Remove Caregiver')
+    if df_caregivers.empty:
+        st.write('No caregivers to remove.')
+        
+    else:
+        remove_name = st.selectbox('Select Caregiver Name to Remove', df_caregivers['Name'].tolist(), key="remove_name")
+        if st.button('Remove Caregiver'):
+            if remove_name in st.session_state.caregiver_data['Name']:
+                index_to_remove = st.session_state.caregiver_data['Name'].index(remove_name)
+                for key in st.session_state.caregiver_data:
+                    st.session_state.caregiver_data[key].pop(index_to_remove)
+                st.success(f'Caregiver {remove_name} removed successfully!')
+                st.rerun()
 
 
+# HALAMAN FALL HISTORY
 def fall_history():
     st.header('Fall History')
     if st.session_state.fall_history:
@@ -146,11 +189,12 @@ def fall_history():
             st.write(f"**Confidence Score:** {row['Confidence Score']}")
             st.image(row['Image'])
             st.write("---")
-
+            
     else:
         st.write('No falls detected yet.')
 
 
+# SIDEBAR
 def app():
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["AI Detection", "Caregiver Information", "Fall History"])
