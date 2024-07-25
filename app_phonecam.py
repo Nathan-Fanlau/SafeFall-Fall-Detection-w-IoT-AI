@@ -7,8 +7,7 @@ import os
 import serial
 import pywhatkit as pwk
 
-
-def app():
+def ai_detection():
     st.header('SafeFall: Fall Detection Web App')
     st.subheader('Made by SIC5 - Kelompok 32')
     st.write('To use: Install "IP Webcam" from the playstore in your smartphone. Then, choose the bottom-most option "Start server"')
@@ -19,17 +18,6 @@ def app():
     custom_model_path = 'best.pt'
     model = YOLO(custom_model_path)
     object_names = list(model.names.values())
-    
-    # Display Caregiver data
-    st.subheader('Caregiver Information')
-    caregiver_data = {
-        'No': ['1', '2'],
-        'Name': ['Lebron James', 'Stephen Curry'],
-        'Phone Number': ['+62 812-3456-7890', '+62 811-2345-6789']
-    }
-    df_caregivers = pd.DataFrame(caregiver_data)
-    df_caregivers.set_index('No', inplace=True)
-    st.table(df_caregivers)
 
     min_confidence = st.slider('Minimum confidence score', 0.0, 1.0, value=0.75)
 
@@ -109,8 +97,9 @@ def app():
                             })
                             
                             # Send image and message to alert medics
-                            phone_number = "+62xxxxxxxxxxx"
-                            message = f"Fall detected at {fall_time.replace('-', ':')}, {fall_date.replace('-', '/')}! Please check on patient immediately."
+                            # Refrain from opening a second monitor, else the code may not work
+                            phone_number = "+62081807300657"
+                            message = f"Fall detected at {fall_time.replace('-', ':')}, {fall_date.replace('-', '/')}. Please check on patient immediately!"
                             delay = 12
                             pwk.sendwhats_image(phone_number, frame_path, message, delay, tab_close=True)
                             
@@ -130,8 +119,21 @@ def app():
 
         cap.release()
 
-    # Display Fall history
-    st.subheader('Fall History')
+
+def caregiver_info():
+    st.header('Caregiver Information')
+    caregiver_data = {
+        'No': ['1', '2'],
+        'Name': ['Lebron James', 'Stephen Curry'],
+        'Phone Number': ['+62 812-3456-7890', '+62 811-2345-6789']
+    }
+    df_caregivers = pd.DataFrame(caregiver_data)
+    df_caregivers.set_index('No', inplace=True)
+    st.table(df_caregivers)
+
+
+def fall_history():
+    st.header('Fall History')
     if st.session_state.fall_history:
         df_fall_history = pd.DataFrame(st.session_state.fall_history)
         df_fall_history.set_index('No', inplace=True)
@@ -148,6 +150,17 @@ def app():
     else:
         st.write('No falls detected yet.')
 
+
+def app():
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Go to", ["AI Detection", "Caregiver Information", "Fall History"])
+
+    if page == "AI Detection":
+        ai_detection()
+    elif page == "Fall History":
+        fall_history()
+    elif page == "Caregiver Information":
+        caregiver_info()
     
 
 if __name__ == "__main__":
