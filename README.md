@@ -2,7 +2,7 @@
 
 SafeFall is an innovative web application designed to detect falls in real-time using computer vision. It leverages the power of YOLO (You Only Look Once) object detection models to analyze video streams from a smartphone camera and alert caregivers when a fall is detected. The application is user-friendly, allowing for easy setup and management of caregiver information.
 
-![screenshot](2. Flowchart.png)
+![screenshot](Flowchart.png)
 
 ## Features
 
