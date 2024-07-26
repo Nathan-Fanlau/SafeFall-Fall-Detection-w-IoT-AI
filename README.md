@@ -25,16 +25,13 @@ SafeFall is an innovative web application designed to detect falls in real-time 
 1. **Clone the Repository**
     ```bash
     git clone https://github.com/Nathan-Fanlau/SafeFall-Fall-Detection-w-IoT-AI.git
-    cd folder
+    cd SafeFall-Fall-Detection-w-IoT-AI
     ```
 
 2. **Install Dependencies**
     ```bash
     pip install -r requirements.txt
     ```
-
-3. **Download YOLO Model**
-   - Download the YOLO model `best.pt` and place it in the project directory.
 
 ## Setup
 
