@@ -27,8 +27,14 @@ SafeFall is an innovative web application designed to detect falls in real-time 
     git clone https://github.com/Nathan-Fanlau/SafeFall-Fall-Detection-w-IoT-AI.git
     cd SafeFall-Fall-Detection-w-IoT-AI
     ```
+    
+2. **Create and Activate a Virtual Environment**
+    ```bash
+    python -m venv .venv
+    venv\Scripts\activate.bat
+    ```
 
-2. **Install Dependencies**
+3. **Install the Required Libraries**
     ```bash
     pip install -r requirements.txt
     ```
@@ -45,19 +51,29 @@ SafeFall is an innovative web application designed to detect falls in real-time 
 
 ## Usage
 
-1. **Run the Application**
+1. **Activate Virtual Environment**
+    ```bash
+    .venv\Scripts\activate.bat
+    ```
+
+2. **Run the Application with Streamlit**
     ```bash
     streamlit run app_phonecam.py
     ```
 
-2. **Configure the Web App**
+3. **Configure the Web App**
    - Open the web app in your browser.
+   - Select the confidence score for AI model.
    - Enter the mobile camera stream URL (from IP Webcam).
    - Click "Start Streaming" to begin fall detection.
 
-3. **Manage Caregivers**
+4. **Manage Caregivers**
    - Navigate to the "Caregiver Management" section.
    - Add or remove caregivers as needed.
+
+5. **See Fall History**
+   - Navigate to the "Fall History" section.
+   - See the date, time, confidence score and image of detected falls.
 
 ---
 
