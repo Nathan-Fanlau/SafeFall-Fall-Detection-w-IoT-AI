@@ -30,7 +30,7 @@ SafeFall is an innovative web application designed to detect falls in real-time 
 
 2. **Install Dependencies**
     ```bash
-    pip install streamlit opencv-python pandas ultralytics pyserial pywhatkit
+    pip install -r requirements.txt
     ```
 
 3. **Download YOLO Model**
