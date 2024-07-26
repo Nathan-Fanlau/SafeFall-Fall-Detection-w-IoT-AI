@@ -17,4 +17,51 @@ SafeFall is an innovative web application designed to detect falls in real-time 
 - Pandas
 - Ultralytics
 - pySerial
+- pywhatkit
 - IP Webcam App (for Android)
+
+## Installation
+
+1. **Clone the Repository**
+    ```bash
+    git clone https://github.com/Nathan-Fanlau/SafeFall-Fall-Detection-w-IoT-AI.git
+    cd folder
+    ```
+
+2. **Install Dependencies**
+    ```bash
+    pip install streamlit opencv-python pandas ultralytics pyserial pywhatkit
+    ```
+
+3. **Download YOLO Model**
+   - Download the YOLO model `best.pt` and place it in the project directory.
+
+## Setup
+
+1. **IP Webcam Setup**
+   - Install the [IP Webcam](https://play.google.com/store/apps/details?id=com.pas.webcam) app from the Google Play Store on your Android device.
+   - Open the app and start the server. Note the IPv4 URL (e.g., `http://xxx.xxx.xxx.xxx:8080/video`).
+
+2. **Connect to Arduino**
+   - Ensure your Arduino is connected to your computer.
+   - Update the `ESP32 = serial.Serial('COM3', 9600)` line in the code with the correct port for your setup.
+
+## Usage
+
+1. **Run the Application**
+    ```bash
+    streamlit run app_phonecam.py
+    ```
+
+2. **Configure the Web App**
+   - Open the web app in your browser.
+   - Enter the mobile camera stream URL (from IP Webcam).
+   - Click "Start Streaming" to begin fall detection.
+
+3. **Manage Caregivers**
+   - Navigate to the "Caregiver Management" section.
+   - Add or remove caregivers as needed.
+
+---
+
+Made by SIC5 - Kelompok 32
